@@ -1,0 +1,32 @@
+RAC Basics : CRS, Voting Disk, OCR, Cache Fusion ….
+•	December 29, 2008 /
+•	Database     RAC /
+•	By Atul Kumar /
+•	10 COMMENTS
+Oracle Clusterware (Cluster Ready Services in 10g/ Cluster Manager in 9i) – provides infrastructure that binds multiple nodes that then operate as single server. Clusterware monitors all components like instances and listeners. There are two important components in Oracle clusterware, Voting Disk and OCR (Oracle Cluster Registry).
+.
+Voting Disk – is file that resides on shared storage and Manages cluster members.  Voting disk reassigns cluster ownership between the nodes in case of failure.
+OCR (Oracle Cluster Registry) – resides on shared storage and maintains information about cluster configuration and information about cluster database. OCR contains information like which database instances run on which nodes and which services runs on which database.
+CRS Resource – anything that Oracle Clusterware manages is classified as CRS resourcelike database, instance, service, listener, VIP address and so on.
+.
+Cluster-Aware Storage – is storage solution for Oracle RAC like RAW device, OCFS, ASM… to know more about storage option in RAC click here
+.
+Interconnect – is private network that connects all the servers in cluster. Interconnect uses switch that only nodes in cluster can access. Instances in cluster communicate to each other via interconnect.
+.
+Cache Fusion – is disk less cache coherency mechanism in Oracle RAC that provides copies of data blocks directly from one instance’s memory cache (in which that block is available) to other instance (instance which is request for specific data block).  Cache Fusion provides single buffer cache (for all instances in cluster) through interconnect.
+In Single Node oracle database, an instance looking for data block first checks in cache, if block is not in cache then goes to disk to pull block from disk to cache and return block to client.
+In RAC Database there is remote cache so instance should look not only in local cache (cache local to instance) but on remote cache (cache on remote instance). If cache is available in local cache then it should return data block from local cache; if data block is not in local cache, instead of going to disk it should first go to remote cache (remote instance) to check if block is available in local cache (via interconnect)
+This is because accessing data block from remote cache is faster than accessing it from disk.
+.
+Cache Fusion Model
+Cache fusion Model is dependent on three services
+— Global Resource Directory (GRD)
+— Global Cache Service (GCS)
+— Global En-queue Service (GES) and —
+More on Cache Fusion Model coming soon …..
+.
+SSH User Equivalency – means assigning same properties (username, userid, group, group id and same password) to operating system user (installing & owning RAC database) across all nodes in cluster
+CVU (Cluster Varification Utility) – is utility to verify that system meets all the criteria for Oracle Clusterware Installation.
+
+
+
