@@ -1,0 +1,77 @@
+Dataguard
+
+SQL> ALTER SESSION SET nls_date_format='DD-MON-YYYY HH24:MI:SS';
+ SQL> SELECT sequence#, first_time, next_time, applied
+ FROM v$archived_log
+ ORDER BY sequence#;
+ ...
+ ...
+ 59 08-OCT-14 08-OCT-14 YES
+ 60 08-OCT-14 08-OCT-14 YES
+ 61 08-OCT-14 08-OCT-14 YES
+
+SQL> select dest_name,status,error from v$archive_dest where dest_name='LOG_ARCHIVE_DEST_2';
+ DEST_NAME
+ --------------------------------------------------------------------------------
+ STATUS ERROR
+ --------- -----------------------------------------------------------------
+ LOG_ARCHIVE_DEST_2
+ VALID
+SQL> select message from v$dataguard_status;
+On Primary database:
+Step-1>>
+Connect to Primary database and convert primary database to standby.
+ [oracle@pr ~]$ sqlplus / as sysdba
+ SQL> alter database commit to switchover to standby;
+ Database altered.
+Step-2>>
+Shutdown primary database:
+SQL> shutdown immediate;
+Step-3>>
+Startup nomount old primary database as new standby database:
+ SQL> startup nomount
+ ORACLE instance started.
+ Total System Global Area 972898304 bytes
+ Fixed Size 2219272 bytes
+ Variable Size 805307128 bytes
+ Database Buffers 159383552 bytes
+ Redo Buffers 5988352 bytes
+ SQL> alter database mount standby database;
+ Database altered.
+ SQL> alter database recover managed standby database disconnect from session;
+ Database altered.
+Verify database role on old primary database:
+ SQL> select name,open_mode,database_role from v$database;
+ NAME OPEN_MODE DATABASE_ROLE
+ --------- -------------------- ----------------
+ RTS MOUNTED PHYSICAL STANDBY
+ 
+On Standby database:
+Step-4>>
+On original standby database, Convert old standby database to primary database:
+[oracle@dr ~]$ sqlplus / as sysdba
+Step-5>>
+Convert old standby database as primary and shutdown database:
+ SQL> alter database commit to switchover to primary;
+ Database altered.
+ SQL> shutdown immediate;
+ ORA-01109: database not open
+ Database dismounted.
+ ORACLE instance shut down.
+Step-6>>
+Startup old standby database as primary database:
+ SQL> startup
+ ORACLE instance started.
+ Total System Global Area 972898304 bytes
+ Fixed Size 2219272 bytes
+ Variable Size 717226744 bytes
+ Database Buffers 247463936 bytes
+ Redo Buffers 5988352 bytes
+ Database mounted.
+ Database opened.
+Verify database role on old standby database:
+ SQL> select name,open_mode,database_role from v$database;
+ NAME OPEN_MODE DATABASE_ROLE
+ --------- -------------------- ----------------
+ RTS READ WRITE PRIMARY
+
